@@ -5,24 +5,25 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  output   = "../app/generated/prisma"
+  provider = "prisma-client-js"
+
 }
 
 datasource db {
   provider = "postgresql"
+  url= env("DATABASE_URL")
 }
 
 model User {
-  id        String   @id @default(cuid())
-  clerkId   String   @unique
-  email     String   @unique
-  role      Role     @default(USER)
+  id         String    @id @default(cuid())
+  clerkId    String    @unique
+  email      String    @unique
+  role       Role      @default(USER)
   department String?   // only for STAFF
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
-  requests  Request[]
+  requests   Request[]
 }
 
 model Request {
@@ -38,11 +39,32 @@ model Request {
   testType        String?
   doctorName      String?
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  logs RequestLog[] // ← relation to activity timeline logs
+}
+
+model RequestLog {
+  id        String    @id @default(cuid())
+  requestId String
+  request   Request   @relation(fields: [requestId], references: [id])
+
+  department  String    // e.g. "EMERGENCY", "LABORATORY", "CARDIOLOGY"
+  action      String    // e.g. "Patient admitted with chest pain"
+  performedBy String?   // Doctor/staff name e.g. "Dr. Alan Brooks"
+  status      LogStatus // COMPLETED, IN_PROGRESS, PENDING
+
+  createdAt DateTime @default(now())
+}
+
+enum LogStatus {
+  COMPLETED
+  IN_PROGRESS
+  PENDING
 }
 
 enum Role {
