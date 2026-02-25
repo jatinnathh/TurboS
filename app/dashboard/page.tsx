@@ -8,32 +8,32 @@ import { UserButton } from "@clerk/nextjs";
 
 function statusBadge(status: string) {
   const map: Record<string, string> = {
-    PENDING:     "bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/30",
-    APPROVED:    "bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/30",
-    REJECTED:    "bg-rose-500/10 text-rose-400 ring-1 ring-rose-500/30",
+    PENDING: "bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/30",
+    APPROVED: "bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/30",
+    REJECTED: "bg-rose-500/10 text-rose-400 ring-1 ring-rose-500/30",
     IN_PROGRESS: "bg-sky-500/10 text-sky-400 ring-1 ring-sky-500/30",
-    COMPLETED:   "bg-violet-500/10 text-violet-400 ring-1 ring-violet-500/30",
+    COMPLETED: "bg-violet-500/10 text-violet-400 ring-1 ring-violet-500/30",
   };
   return map[status] ?? "bg-slate-500/10 text-slate-400 ring-1 ring-slate-500/30";
 }
 
 function priorityConfig(priority: string) {
   const map: Record<string, { dot: string; text: string }> = {
-    LOW:      { dot: "bg-slate-400",  text: "text-slate-400" },
-    MEDIUM:   { dot: "bg-amber-400",  text: "text-amber-400" },
-    HIGH:     { dot: "bg-orange-400", text: "text-orange-400" },
-    CRITICAL: { dot: "bg-rose-400",   text: "text-rose-400" },
+    LOW: { dot: "bg-slate-400", text: "text-slate-400" },
+    MEDIUM: { dot: "bg-amber-400", text: "text-amber-400" },
+    HIGH: { dot: "bg-orange-400", text: "text-orange-400" },
+    CRITICAL: { dot: "bg-rose-400", text: "text-rose-400" },
   };
   return map[priority] ?? { dot: "bg-slate-400", text: "text-slate-400" };
 }
 
 function typeIcon(type: string) {
   const map: Record<string, string> = {
-    APPOINTMENT:     "🗓",
-    LAB_TEST:        "🧪",
-    EMERGENCY:       "🚨",
-    PRESCRIPTION:    "💊",
-    ROOM_BOOKING:    "🛏",
+    APPOINTMENT: "🗓",
+    LAB_TEST: "🧪",
+    EMERGENCY: "🚨",
+    PRESCRIPTION: "💊",
+    ROOM_BOOKING: "🛏",
     REPORT_DOWNLOAD: "📄",
   };
   return map[type] ?? "📋";
@@ -72,22 +72,22 @@ const ACTIONS = [
     text: "text-rose-300",
   },
   {
-    href: "/dashboard/prescription",
-    label: "Prescription",
-    desc: "Manage medications",
+    href: "/dashboard/prescriptions",
+    label: "Prescriptions",
+    desc: "View your medications",
     icon: "💊",
     ring: "ring-emerald-500/30 hover:ring-emerald-400/60",
     iconBg: "bg-emerald-500/10",
     text: "text-emerald-300",
   },
   {
-    href: "/dashboard/room-booking",
-    label: "Room Booking",
-    desc: "Reserve hospital rooms",
-    icon: "🛏",
-    ring: "ring-amber-500/30 hover:ring-amber-400/60",
-    iconBg: "bg-amber-500/10",
-    text: "text-amber-300",
+    href: "/dashboard/health-status",
+    label: "Health Status",
+    desc: "Track your checkups",
+    icon: "🩺",
+    ring: "ring-cyan-500/30 hover:ring-cyan-400/60",
+    iconBg: "bg-cyan-500/10",
+    text: "text-cyan-300",
   },
   {
     href: "/dashboard/report",
@@ -123,13 +123,27 @@ export default async function Dashboard() {
   const requests = await prisma.request.findMany({
     where: { userId: user.id },
     orderBy: { createdAt: "desc" },
+    include: { doctor: true },
   });
 
+  const prescriptions = await prisma.prescription.findMany({
+    where: { userId: user.id },
+    include: { doctor: true },
+    orderBy: { createdAt: "desc" },
+    take: 3,
+  });
+
+  const activeCheckups = requests.filter((r) =>
+    ["PENDING", "APPROVED", "IN_PROGRESS"].includes(r.status)
+  );
+
+  const now = new Date();
+
   const stats = [
-    { label: "Total",       value: requests.length,                                           color: "text-slate-100",  sub: "All time" },
-    { label: "Pending",     value: requests.filter((r) => r.status === "PENDING").length,     color: "text-amber-400",  sub: "Awaiting review" },
-    { label: "In Progress", value: requests.filter((r) => r.status === "IN_PROGRESS").length, color: "text-sky-400",    sub: "Being processed" },
-    { label: "Completed",   value: requests.filter((r) => r.status === "COMPLETED").length,   color: "text-violet-400", sub: "Successfully done" },
+    { label: "Total", value: requests.length, color: "text-slate-100", sub: "All time" },
+    { label: "Pending", value: requests.filter((r) => r.status === "PENDING").length, color: "text-amber-400", sub: "Awaiting review" },
+    { label: "In Progress", value: requests.filter((r) => r.status === "IN_PROGRESS").length, color: "text-sky-400", sub: "Being processed" },
+    { label: "Completed", value: requests.filter((r) => r.status === "COMPLETED").length, color: "text-violet-400", sub: "Successfully done" },
   ];
 
   const displayName =
@@ -218,6 +232,97 @@ export default async function Dashboard() {
             ))}
           </div>
         </div>
+
+        {/* ── Active Checkups Summary ── */}
+        {activeCheckups.length > 0 && (
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+                Active Checkups
+              </p>
+              <Link
+                href="/dashboard/health-status"
+                className="text-xs text-sky-400 hover:text-sky-300 transition-colors font-medium"
+              >
+                View all →
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {activeCheckups.slice(0, 3).map((req) => {
+                const p = priorityConfig(req.priority);
+                return (
+                  <Link
+                    key={req.id}
+                    href={`/dashboard/requests/${req.id}`}
+                    className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-4 hover:border-white/[0.15] transition-all group"
+                  >
+                    <div className="flex items-center gap-3 mb-3">
+                      <span className="text-lg">{typeIcon(req.type)}</span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-bold text-slate-200 truncate group-hover:text-white transition-colors">
+                          {req.title}
+                        </p>
+                        <p className="text-xs text-slate-500">{req.department ?? "—"}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className={`inline-flex items-center text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${statusBadge(req.status)}`}>
+                        {req.status.replace("_", " ")}
+                      </span>
+                      {req.doctor && (
+                        <span className="text-xs text-slate-500 truncate ml-2">{req.doctor.name}</span>
+                      )}
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ── Recent Prescriptions ── */}
+        {prescriptions.length > 0 && (
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+                Recent Prescriptions
+              </p>
+              <Link
+                href="/dashboard/prescriptions"
+                className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors font-medium"
+              >
+                View all →
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {prescriptions.map((rx) => {
+                const isActive = !rx.endDate || new Date(rx.endDate) >= now;
+                return (
+                  <div
+                    key={rx.id}
+                    className={`bg-white/[0.03] border rounded-2xl p-4 ${isActive ? "border-emerald-500/15" : "border-white/[0.07] opacity-60"
+                      }`}
+                  >
+                    <div className="flex items-center gap-2.5 mb-2">
+                      <span className="text-lg">💊</span>
+                      <p className="text-sm font-bold text-slate-200 truncate">{rx.medication}</p>
+                    </div>
+                    <p className="text-xs text-slate-500">{rx.dosage} · {rx.frequency}</p>
+                    <div className="flex items-center justify-between mt-2">
+                      <span className="text-[10px] text-slate-500">{rx.doctor.name}</span>
+                      <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${isActive
+                          ? "bg-emerald-500/10 text-emerald-400"
+                          : "bg-slate-500/10 text-slate-500"
+                        }`}>
+                        {isActive ? "Active" : "Expired"}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* ── Requests Table ── */}
         <div>

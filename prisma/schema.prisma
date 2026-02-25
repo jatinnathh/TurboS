@@ -1,17 +1,13 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
-
 }
 
 datasource db {
   provider = "postgresql"
-  url= env("DATABASE_URL")
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -23,7 +19,23 @@ model User {
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
-  requests   Request[]
+  requests      Request[]
+  prescriptions Prescription[]
+}
+
+model Doctor {
+  id             String   @id @default(cuid())
+  clerkId        String?  @unique
+  email          String   @unique
+  name           String
+  specialization String
+  department     String
+  imageUrl       String?
+  available      Boolean  @default(true)
+  createdAt      DateTime @default(now())
+
+  requests      Request[]
+  prescriptions Prescription[]
 }
 
 model Request {
@@ -39,13 +51,16 @@ model Request {
   testType        String?
   doctorName      String?
 
+  doctorId String?
+  doctor   Doctor? @relation(fields: [doctorId], references: [id])
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   userId String
   user   User   @relation(fields: [userId], references: [id])
 
-  logs RequestLog[] // ← relation to activity timeline logs
+  logs RequestLog[]
 }
 
 model RequestLog {
@@ -53,12 +68,31 @@ model RequestLog {
   requestId String
   request   Request   @relation(fields: [requestId], references: [id])
 
-  department  String    // e.g. "EMERGENCY", "LABORATORY", "CARDIOLOGY"
-  action      String    // e.g. "Patient admitted with chest pain"
-  performedBy String?   // Doctor/staff name e.g. "Dr. Alan Brooks"
-  status      LogStatus // COMPLETED, IN_PROGRESS, PENDING
+  department  String
+  action      String
+  performedBy String?
+  status      LogStatus
 
   createdAt DateTime @default(now())
+}
+
+model Prescription {
+  id         String   @id @default(cuid())
+  medication String
+  dosage     String
+  frequency  String
+  startDate  DateTime
+  endDate    DateTime?
+  notes      String?
+
+  doctorId String
+  doctor   Doctor @relation(fields: [doctorId], references: [id])
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 enum LogStatus {
