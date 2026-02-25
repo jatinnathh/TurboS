@@ -1,0 +1,76 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String   @unique
+  email     String   @unique
+  role      Role     @default(USER)
+  department String?   // only for STAFF
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  requests  Request[]
+}
+
+model Request {
+  id          String      @id @default(cuid())
+  type        RequestType
+  title       String
+  description String?
+  department  String?
+  priority    Priority    @default(MEDIUM)
+  status      Status      @default(PENDING)
+
+  appointmentDate DateTime?
+  testType        String?
+  doctorName      String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+enum Role {
+  USER
+  STAFF
+  ADMIN
+}
+
+enum Status {
+  PENDING
+  APPROVED
+  REJECTED
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum RequestType {
+  APPOINTMENT
+  LAB_TEST
+  EMERGENCY
+  PRESCRIPTION
+  ROOM_BOOKING
+  REPORT_DOWNLOAD
+}
