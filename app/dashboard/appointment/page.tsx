@@ -38,7 +38,7 @@ export default function AppointmentPage() {
     }
     setLoadingDoctors(true);
     setSelectedDoctor(null);
-    fetch(`/api/doctors?department=${encodeURIComponent(department)}`)
+    fetch(`/api/doctor/department?department=${encodeURIComponent(department)}`)
       .then((r) => r.json())
       .then((data) => {
         setDoctors(data);
