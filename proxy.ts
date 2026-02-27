@@ -1,17 +1,24 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-const isPublicRoute = createRouteMatcher(["/sign-in(.*)", "/sign-up(.*)"]);
+// Routes that DO NOT require Clerk authentication
+const isPublicRoute = createRouteMatcher([
+  "/",
+  "/sign-in(.*)",
+  "/sign-up(.*)",
+  "/doctor(.*)",       // doctor system uses JWT, not Clerk
+  "/api/doctor(.*)",   // doctor APIs use JWT
+]);
 
 export default clerkMiddleware(async (auth, req) => {
   const { userId } = await auth();
 
-  // If logged in and on root "/", redirect to /dashboard
+  // If logged in patient and visiting root → go to patient dashboard
   if (userId && req.nextUrl.pathname === "/") {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
-  // Protect all non-public routes
+  // Protect everything except public routes
   if (!isPublicRoute(req)) {
     await auth.protect();
   }
@@ -19,9 +26,7 @@ export default clerkMiddleware(async (auth, req) => {
 
 export const config = {
   matcher: [
-    // Skip Next.js internals and all static files, unless found in search params
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
-    // Always run for API routes
+    "/((?!_next|.*\\..*).*)",
     "/(api|trpc)(.*)",
   ],
 };

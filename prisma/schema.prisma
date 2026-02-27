@@ -25,8 +25,8 @@ model User {
 
 model Doctor {
   id             String   @id @default(cuid())
-  clerkId        String?  @unique
   email          String   @unique
+  password       String   // 👈 add this
   name           String
   specialization String
   department     String
@@ -61,6 +61,9 @@ model Request {
   user   User   @relation(fields: [userId], references: [id])
 
   logs RequestLog[]
+
+  // ✅ ADD THIS
+  prescriptions Prescription[]
 }
 
 model RequestLog {
@@ -90,6 +93,10 @@ model Prescription {
 
   userId String
   user   User   @relation(fields: [userId], references: [id])
+
+  // ✅ ADD THIS
+  requestId String
+  request   Request @relation(fields: [requestId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
