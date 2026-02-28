@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,33 +7,53 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+//////////////////////////////////////////////////////
+// USER MODEL
+//////////////////////////////////////////////////////
+
 model User {
-  id         String    @id @default(cuid())
-  clerkId    String    @unique
-  email      String    @unique
-  role       Role      @default(USER)
-  department String?   // only for STAFF
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  id         String  @id @default(cuid())
+  clerkId    String  @unique
+  email      String  @unique
+  role       Role    @default(USER)
+  department String? // for STAFF users
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   requests      Request[]
   prescriptions Prescription[]
 }
 
+//////////////////////////////////////////////////////
+// DOCTOR MODEL
+//////////////////////////////////////////////////////
+
 model Doctor {
-  id             String   @id @default(cuid())
-  email          String   @unique
-  password       String   // 👈 add this
+  id             String  @id @default(cuid())
+  email          String  @unique
+  password       String
   name           String
   specialization String
   department     String
   imageUrl       String?
-  available      Boolean  @default(true)
-  createdAt      DateTime @default(now())
+  available      Boolean @default(true)
 
-  requests      Request[]
+  createdAt DateTime @default(now())
+
+  // 🔹 Normal patient cases assigned
+  requests Request[]
+
+  // 🔹 Prescriptions written
   prescriptions Prescription[]
+
+  // 🔹 Lab tests assigned to this lab doctor
+  labTests LabTest[] @relation("LabDoctorTests")
 }
+
+//////////////////////////////////////////////////////
+// REQUEST MODEL (Main Case Model)
+//////////////////////////////////////////////////////
 
 model Request {
   id          String      @id @default(cuid())
@@ -47,29 +64,36 @@ model Request {
   priority    Priority    @default(MEDIUM)
   status      Status      @default(PENDING)
 
+  // 🔹 Appointment & medical info
   appointmentDate DateTime?
-  testType        String?
-  doctorName      String?
+  wardType        String?
 
+  // 🔹 Current handling doctor
   doctorId String?
   doctor   Doctor? @relation(fields: [doctorId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // 🔹 Patient
   userId String
   user   User   @relation(fields: [userId], references: [id])
 
-  logs RequestLog[]
-
-  // ✅ ADD THIS
+  // 🔹 Relations
+  logs          RequestLog[]
   prescriptions Prescription[]
+  labTests      LabTest[]
 }
 
+//////////////////////////////////////////////////////
+// REQUEST TIMELINE LOG
+//////////////////////////////////////////////////////
+
 model RequestLog {
-  id        String    @id @default(cuid())
+  id String @id @default(cuid())
+
   requestId String
-  request   Request   @relation(fields: [requestId], references: [id])
+  request   Request @relation(fields: [requestId], references: [id])
 
   department  String
   action      String
@@ -79,8 +103,12 @@ model RequestLog {
   createdAt DateTime @default(now())
 }
 
+//////////////////////////////////////////////////////
+// PRESCRIPTION MODEL
+//////////////////////////////////////////////////////
+
 model Prescription {
-  id         String   @id @default(cuid())
+  id         String    @id @default(cuid())
   medication String
   dosage     String
   frequency  String
@@ -94,12 +122,44 @@ model Prescription {
   userId String
   user   User   @relation(fields: [userId], references: [id])
 
-  // ✅ ADD THIS
   requestId String
   request   Request @relation(fields: [requestId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+//////////////////////////////////////////////////////
+// LAB TEST MODEL
+//////////////////////////////////////////////////////
+
+model LabTest {
+  id String @id @default(cuid())
+
+  requestId String
+  request   Request @relation(fields: [requestId], references: [id])
+
+  department String // Radiology / Pathology / Blood Lab / Cardiac Lab
+  testType   String
+
+  status LabStatus @default(PENDING)
+  result String?
+
+  labDoctorId String?
+  labDoctor   Doctor? @relation("LabDoctorTests", fields: [labDoctorId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+//////////////////////////////////////////////////////
+// ENUMS
+//////////////////////////////////////////////////////
+
+enum LabStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
 }
 
 enum LogStatus {

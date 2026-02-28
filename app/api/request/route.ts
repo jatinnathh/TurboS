@@ -40,6 +40,22 @@ export async function POST(req: Request) {
     status = "IN_PROGRESS";
   }
 
+  // 📅 APPOINTMENT — Use selected doctor
+  if (data.type === "APPOINTMENT" && data.doctorId) {
+    assignedDoctor = await prisma.doctor.findUnique({
+      where: { id: data.doctorId },
+    });
+
+    if (!assignedDoctor) {
+      return NextResponse.json(
+        { error: "Selected doctor not found" },
+        { status: 400 }
+      );
+    }
+
+    status = "IN_PROGRESS";
+  }
+
   // 1️⃣ Create request
   const request = await prisma.request.create({
     data: {
@@ -67,18 +83,18 @@ export async function POST(req: Request) {
       action:
         data.type === "EMERGENCY"
           ? "Emergency request received"
-          : "Request submitted",
+          : "Appointment booked",
       performedBy: dbUser.email,
       status: "COMPLETED",
     },
   });
 
-  // 3️⃣ Timeline log: Doctor assigned (only for emergency)
+  // 3️⃣ Doctor assigned log
   if (assignedDoctor) {
     await prisma.requestLog.create({
       data: {
         requestId: request.id,
-        department: "Emergency",
+        department: assignedDoctor.department,
         action: `Assigned to ${assignedDoctor.name}`,
         performedBy: "System",
         status: "IN_PROGRESS",

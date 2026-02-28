@@ -47,7 +47,7 @@ export async function POST(req: Request) {
     );
   }
 
-  // 🔥 1️⃣ Close previous IN_PROGRESS logs
+  // 1️⃣ Close old active logs
   await prisma.requestLog.updateMany({
     where: {
       requestId,
@@ -58,18 +58,17 @@ export async function POST(req: Request) {
     },
   });
 
-  // 🔥 2️⃣ Update request owner
+  // 2️⃣ Update request owner
   await prisma.request.update({
     where: { id: requestId },
     data: {
       doctorId: newDoctor.id,
-      doctorName: newDoctor.name,
       department: newDoctor.department,
       status: "IN_PROGRESS",
     },
   });
 
-  // 🔥 3️⃣ Add referral log
+  // 3️⃣ Add referral log
   await prisma.requestLog.create({
     data: {
       requestId,
@@ -80,7 +79,7 @@ export async function POST(req: Request) {
     },
   });
 
-  // 🔥 4️⃣ Add new department active log
+  // 4️⃣ Start new department log
   await prisma.requestLog.create({
     data: {
       requestId,

@@ -19,6 +19,12 @@ function statusBadge(status: string) {
   return map[status] ?? "bg-slate-500/10 text-slate-400 ring-1 ring-slate-500/30";
 }
 
+function labStatusBadge(status: string) {
+  if (status === "COMPLETED")   return "bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/30";
+  if (status === "IN_PROGRESS") return "bg-sky-500/10 text-sky-400 ring-1 ring-sky-500/30";
+  return "bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/30";
+}
+
 function StatusIcon({ status }: { status: string }) {
   if (status === "COMPLETED") {
     return (
@@ -60,12 +66,17 @@ export default async function RequestDetail({ params }: PageProps) {
 
   const { id } = await params;
 
+  /* ✅ UPDATED FETCH WITH LAB TESTS */
   const request = await prisma.request.findUnique({
     where: { id },
     include: {
       user: true,
       logs: { orderBy: { createdAt: "asc" } },
       prescriptions: true,
+      labTests: {
+        include: { labDoctor: true },
+        orderBy: { createdAt: "asc" },
+      },
     },
   });
 
@@ -102,8 +113,8 @@ export default async function RequestDetail({ params }: PageProps) {
 
       <div className="max-w-4xl mx-auto px-5 md:px-8 py-10 space-y-8">
 
-        {/* ── Header Card ── */}
-        <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-6 space-y-4">
+        {/* ── Request Header ── */}
+        <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-6">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-500 mb-1">
@@ -112,11 +123,11 @@ export default async function RequestDetail({ params }: PageProps) {
               <h2 className="text-xl font-extrabold tracking-tight text-slate-100">
                 {request.title}
               </h2>
-              <p className="text-sm text-slate-500 mt-1 flex items-center gap-1.5">
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <p className="text-sm text-slate-500 mt-1.5 flex items-center gap-1.5">
+                <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
-                {request.user.email}
+                Patient: {request.user.email}
               </p>
             </div>
             <span className={`inline-flex items-center text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full ${statusBadge(request.status)}`}>
@@ -125,29 +136,7 @@ export default async function RequestDetail({ params }: PageProps) {
           </div>
         </div>
 
-        {/* ── Currently Handling (only if active) ── */}
-        {request.status !== "COMPLETED" && (
-          <div className="bg-sky-500/5 border border-sky-500/20 rounded-2xl p-5 space-y-3">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-sky-400 animate-pulse" />
-              <h3 className="text-sm font-bold text-sky-400 uppercase tracking-widest">
-                Currently Handling Case
-              </h3>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-white/[0.03] rounded-xl px-4 py-3">
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-600 mb-1">Department</p>
-                <p className="text-sm font-semibold text-slate-300">{request.department ?? "—"}</p>
-              </div>
-              <div className="bg-white/[0.03] rounded-xl px-4 py-3">
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-600 mb-1">Doctor</p>
-                <p className="text-sm font-semibold text-slate-300">{request.doctorName ?? "—"}</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ── Timeline ── */}
+        {/* ── Activity Timeline ── */}
         <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-6">
           <div className="flex items-center gap-2 mb-6">
             <svg className="w-4 h-4 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -160,7 +149,7 @@ export default async function RequestDetail({ params }: PageProps) {
           </div>
 
           {request.logs.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-10 gap-2 text-slate-600">
+            <div className="flex flex-col items-center justify-center py-10 gap-2">
               <span className="text-3xl">🕐</span>
               <p className="text-sm font-semibold text-slate-500">No activity yet</p>
             </div>
@@ -186,7 +175,7 @@ export default async function RequestDetail({ params }: PageProps) {
                           <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                           </svg>
-                          {log.performedBy}
+                          By {log.performedBy}
                         </p>
                       )}
                     </div>
@@ -226,9 +215,65 @@ export default async function RequestDetail({ params }: PageProps) {
                     {pres.dosage} · {pres.frequency}
                   </p>
                   {pres.notes && (
-                    <p className="text-xs text-slate-600 mt-1.5 italic">
-                      {pres.notes}
+                    <p className="text-xs text-slate-600 mt-1.5 italic">{pres.notes}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* ── Lab Tests ── */}
+        <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-6">
+          <div className="flex items-center gap-2 mb-6">
+            <span className="text-lg">🧪</span>
+            <h3 className="text-sm font-bold tracking-tight text-slate-200">Lab Tests</h3>
+            <span className="ml-auto text-xs text-slate-600 bg-white/5 border border-white/[0.08] rounded-full px-2.5 py-0.5">
+              {request.labTests.length} total
+            </span>
+          </div>
+
+          {request.labTests.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-10 gap-2">
+              <span className="text-3xl">🔬</span>
+              <p className="text-sm font-semibold text-slate-500">No lab tests ordered</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {request.labTests.map((test) => (
+                <div key={test.id} className="bg-white/[0.03] border border-white/[0.06] rounded-xl px-5 py-4 space-y-3">
+
+                  {/* Test header */}
+                  <div className="flex items-start justify-between gap-3 flex-wrap">
+                    <div className="space-y-1">
+                      <p className="text-sm font-bold text-slate-200">{test.testType}</p>
+                      <span className={`inline-flex items-center text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded ${deptColor(test.department)}`}>
+                        {test.department}
+                      </span>
+                    </div>
+                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${labStatusBadge(test.status)}`}>
+                      {test.status.replace("_", " ")}
+                    </span>
+                  </div>
+
+                  {/* Lab doctor */}
+                  {test.labDoctor && (
+                    <p className="text-xs text-slate-500 flex items-center gap-1.5">
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                      Lab Doctor: {test.labDoctor.name}
                     </p>
+                  )}
+
+                  {/* Result */}
+                  {test.result && (
+                    <div className="p-3 bg-emerald-500/5 border border-emerald-500/20 rounded-xl">
+                      <p className="text-[10px] font-semibold uppercase tracking-widest text-emerald-400 mb-1.5">
+                        Result
+                      </p>
+                      <p className="text-sm text-slate-200">{test.result}</p>
+                    </div>
                   )}
                 </div>
               ))}
@@ -237,20 +282,8 @@ export default async function RequestDetail({ params }: PageProps) {
         </div>
 
         {/* ── Action Section ── */}
-        {request.status !== "COMPLETED" ? (
+        {request.status !== "COMPLETED" && (
           <ActionButtons requestId={request.id} doctors={doctors} />
-        ) : (
-          <div className="bg-violet-500/5 border border-violet-500/20 rounded-2xl p-8 text-center space-y-2">
-            <div className="w-12 h-12 rounded-full bg-violet-500/10 ring-2 ring-violet-400/30 flex items-center justify-center mx-auto mb-3">
-              <svg className="w-6 h-6 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-extrabold tracking-tight text-violet-400">Case Closed</h3>
-            <p className="text-sm text-slate-500">
-              This patient has been discharged. No further actions allowed.
-            </p>
-          </div>
         )}
 
       </div>

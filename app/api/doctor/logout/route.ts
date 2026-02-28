@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 
-export async function POST() {
-  const response = NextResponse.redirect("http://localhost:3000/doctor/login");
+export async function POST(request: Request) {
+  const url = new URL("/doctor/login", request.url);
+
+  const response = NextResponse.redirect(url);
 
   response.cookies.set("doctor_token", "", {
     httpOnly: true,
