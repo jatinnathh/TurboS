@@ -72,7 +72,9 @@ export default function ChatLayout({
         const wsUrl = process.env.NEXT_PUBLIC_WS_URL || "http://localhost:3001";
         const s = io(wsUrl, {
             auth: { token },
-            autoConnect: true,
+            transports: ["websocket"],
+            reconnectionAttempts: 5,
+            timeout: 10000,
         });
 
         if (aborted) { s.disconnect(); return; }
