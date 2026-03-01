@@ -8,32 +8,32 @@ import { UserButton } from "@clerk/nextjs";
 
 function statusBadge(status: string) {
   const map: Record<string, string> = {
-    PENDING: "bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/30",
-    APPROVED: "bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/30",
-    REJECTED: "bg-rose-500/10 text-rose-400 ring-1 ring-rose-500/30",
+    PENDING:     "bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/30",
+    APPROVED:    "bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/30",
+    REJECTED:    "bg-rose-500/10 text-rose-400 ring-1 ring-rose-500/30",
     IN_PROGRESS: "bg-sky-500/10 text-sky-400 ring-1 ring-sky-500/30",
-    COMPLETED: "bg-violet-500/10 text-violet-400 ring-1 ring-violet-500/30",
+    COMPLETED:   "bg-violet-500/10 text-violet-400 ring-1 ring-violet-500/30",
   };
   return map[status] ?? "bg-slate-500/10 text-slate-400 ring-1 ring-slate-500/30";
 }
 
 function priorityConfig(priority: string) {
   const map: Record<string, { dot: string; text: string }> = {
-    LOW: { dot: "bg-slate-400", text: "text-slate-400" },
-    MEDIUM: { dot: "bg-amber-400", text: "text-amber-400" },
-    HIGH: { dot: "bg-orange-400", text: "text-orange-400" },
-    CRITICAL: { dot: "bg-rose-400", text: "text-rose-400" },
+    LOW:      { dot: "bg-slate-400",  text: "text-slate-400" },
+    MEDIUM:   { dot: "bg-amber-400",  text: "text-amber-400" },
+    HIGH:     { dot: "bg-orange-400", text: "text-orange-400" },
+    CRITICAL: { dot: "bg-rose-400",   text: "text-rose-400" },
   };
   return map[priority] ?? { dot: "bg-slate-400", text: "text-slate-400" };
 }
 
 function typeIcon(type: string) {
   const map: Record<string, string> = {
-    APPOINTMENT: "🗓",
-    LAB_TEST: "🧪",
-    EMERGENCY: "🚨",
-    PRESCRIPTION: "💊",
-    ROOM_BOOKING: "🛏",
+    APPOINTMENT:     "🗓",
+    LAB_TEST:        "🧪",
+    EMERGENCY:       "🚨",
+    PRESCRIPTION:    "💊",
+    ROOM_BOOKING:    "🛏",
     REPORT_DOWNLOAD: "📄",
   };
   return map[type] ?? "📋";
@@ -49,54 +49,55 @@ const ACTIONS = [
     label: "Book Appointment",
     desc: "Schedule a doctor visit",
     icon: "🗓",
-    ring: "ring-sky-500/30 hover:ring-sky-400/60",
+    ring: "ring-sky-500/20 hover:ring-sky-400/50",
     iconBg: "bg-sky-500/10",
+    iconGlow: "shadow-[0_0_20px_-4px_rgba(56,189,248,0.35)]",
     text: "text-sky-300",
+    bar: "bg-sky-500",
   },
   {
     href: "/dashboard/lab-test",
     label: "Lab Test",
     desc: "Request diagnostic tests",
     icon: "🧪",
-    ring: "ring-violet-500/30 hover:ring-violet-400/60",
+    ring: "ring-violet-500/20 hover:ring-violet-400/50",
     iconBg: "bg-violet-500/10",
+    iconGlow: "shadow-[0_0_20px_-4px_rgba(139,92,246,0.35)]",
     text: "text-violet-300",
+    bar: "bg-violet-500",
   },
   {
     href: "/dashboard/emergency",
     label: "Emergency",
     desc: "Urgent medical request",
     icon: "🚨",
-    ring: "ring-rose-500/30 hover:ring-rose-400/60",
+    ring: "ring-rose-500/20 hover:ring-rose-400/50",
     iconBg: "bg-rose-500/10",
+    iconGlow: "shadow-[0_0_20px_-4px_rgba(244,63,94,0.35)]",
     text: "text-rose-300",
+    bar: "bg-rose-500",
   },
   {
     href: "/dashboard/prescriptions",
     label: "Prescriptions",
     desc: "View your medications",
     icon: "💊",
-    ring: "ring-emerald-500/30 hover:ring-emerald-400/60",
+    ring: "ring-emerald-500/20 hover:ring-emerald-400/50",
     iconBg: "bg-emerald-500/10",
+    iconGlow: "shadow-[0_0_20px_-4px_rgba(52,211,153,0.35)]",
     text: "text-emerald-300",
+    bar: "bg-emerald-500",
   },
   {
     href: "/dashboard/health-status",
     label: "Health Status",
     desc: "Track your checkups",
     icon: "🩺",
-    ring: "ring-cyan-500/30 hover:ring-cyan-400/60",
+    ring: "ring-cyan-500/20 hover:ring-cyan-400/50",
     iconBg: "bg-cyan-500/10",
+    iconGlow: "shadow-[0_0_20px_-4px_rgba(34,211,238,0.35)]",
     text: "text-cyan-300",
-  },
-  {
-    href: "/dashboard/report",
-    label: "Download Report",
-    desc: "Access medical reports",
-    icon: "📄",
-    ring: "ring-teal-500/30 hover:ring-teal-400/60",
-    iconBg: "bg-teal-500/10",
-    text: "text-teal-300",
+    bar: "bg-cyan-500",
   },
 ];
 
@@ -140,10 +141,10 @@ export default async function Dashboard() {
   const now = new Date();
 
   const stats = [
-    { label: "Total", value: requests.length, color: "text-slate-100", sub: "All time" },
-    { label: "Pending", value: requests.filter((r) => r.status === "PENDING").length, color: "text-amber-400", sub: "Awaiting review" },
-    { label: "In Progress", value: requests.filter((r) => r.status === "IN_PROGRESS").length, color: "text-sky-400", sub: "Being processed" },
-    { label: "Completed", value: requests.filter((r) => r.status === "COMPLETED").length, color: "text-violet-400", sub: "Successfully done" },
+    { label: "Total",       value: requests.length,                                           color: "text-slate-100",  sub: "All time" },
+    { label: "Pending",     value: requests.filter((r) => r.status === "PENDING").length,     color: "text-amber-400",  sub: "Awaiting review" },
+    { label: "In Progress", value: requests.filter((r) => r.status === "IN_PROGRESS").length, color: "text-sky-400",    sub: "Being processed" },
+    { label: "Completed",   value: requests.filter((r) => r.status === "COMPLETED").length,   color: "text-violet-400", sub: "Successfully done" },
   ];
 
   const displayName =
@@ -206,26 +207,62 @@ export default async function Dashboard() {
 
         {/* ── Quick Actions ── */}
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-500 mb-4">
-            Quick Actions
-          </p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {ACTIONS.map((a) => (
+          <div className="flex items-center justify-between mb-5">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+              Quick Actions
+            </p>
+            <span className="text-[10px] text-slate-600">{ACTIONS.length} available</span>
+          </div>
+
+          {/* Top row: 3 tall cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+            {ACTIONS.slice(0, 3).map((a) => (
               <Link
                 key={a.href}
                 href={a.href}
-                className={`group flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-white/[0.03] ring-1 ${a.ring} hover:-translate-y-0.5 hover:bg-white/[0.05] transition-all duration-200`}
+                className={`group relative flex flex-col justify-between gap-5 px-5 py-5 rounded-2xl bg-white/[0.03] ring-1 ${a.ring} hover:bg-white/[0.055] hover:-translate-y-0.5 transition-all duration-200 overflow-hidden`}
               >
-                <span className={`text-xl leading-none shrink-0 w-10 h-10 rounded-xl ${a.iconBg} flex items-center justify-center`}>
+                {/* Top accent bar */}
+                <div className={`absolute top-0 left-0 right-0 h-[2px] ${a.bar} opacity-30 group-hover:opacity-70 transition-opacity`} />
+
+                <div className="flex items-start justify-between">
+                  <span className={`text-2xl w-12 h-12 rounded-2xl ${a.iconBg} ${a.iconGlow} flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform`}>
+                    {a.icon}
+                  </span>
+                  <span className="text-slate-700 group-hover:text-slate-400 group-hover:translate-x-0.5 transition-all text-base mt-1">
+                    →
+                  </span>
+                </div>
+
+                <div>
+                  <p className={`text-sm font-bold tracking-tight ${a.text}`}>{a.label}</p>
+                  <p className="text-xs text-slate-500 mt-0.5">{a.desc}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+
+          {/* Bottom row: 2 wide cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {ACTIONS.slice(3).map((a) => (
+              <Link
+                key={a.href}
+                href={a.href}
+                className={`group relative flex items-center gap-4 px-5 py-4 rounded-2xl bg-white/[0.03] ring-1 ${a.ring} hover:bg-white/[0.055] hover:-translate-y-0.5 transition-all duration-200 overflow-hidden`}
+              >
+                {/* Left accent bar */}
+                <div className={`absolute top-0 left-0 bottom-0 w-[2px] ${a.bar} opacity-30 group-hover:opacity-70 transition-opacity`} />
+
+                <span className={`text-2xl w-12 h-12 rounded-2xl ${a.iconBg} ${a.iconGlow} flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform`}>
                   {a.icon}
                 </span>
-                <div className="min-w-0">
-                  <p className={`text-sm font-bold tracking-tight truncate ${a.text}`}>
-                    {a.label}
-                  </p>
-                  <p className="text-xs text-slate-500 truncate">{a.desc}</p>
+
+                <div className="min-w-0 flex-1">
+                  <p className={`text-sm font-bold tracking-tight ${a.text}`}>{a.label}</p>
+                  <p className="text-xs text-slate-500 mt-0.5">{a.desc}</p>
                 </div>
-                <span className="ml-auto text-slate-600 group-hover:text-slate-400 group-hover:translate-x-0.5 transition-all shrink-0">
+
+                <span className="text-slate-700 group-hover:text-slate-400 group-hover:translate-x-0.5 transition-all text-base shrink-0">
                   →
                 </span>
               </Link>
@@ -240,10 +277,7 @@ export default async function Dashboard() {
               <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
                 Active Checkups
               </p>
-              <Link
-                href="/dashboard/health-status"
-                className="text-xs text-sky-400 hover:text-sky-300 transition-colors font-medium"
-              >
+              <Link href="/dashboard/health-status" className="text-xs text-sky-400 hover:text-sky-300 transition-colors font-medium">
                 View all →
               </Link>
             </div>
@@ -287,10 +321,7 @@ export default async function Dashboard() {
               <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
                 Recent Prescriptions
               </p>
-              <Link
-                href="/dashboard/prescriptions"
-                className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors font-medium"
-              >
+              <Link href="/dashboard/prescriptions" className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors font-medium">
                 View all →
               </Link>
             </div>
@@ -300,8 +331,7 @@ export default async function Dashboard() {
                 return (
                   <div
                     key={rx.id}
-                    className={`bg-white/[0.03] border rounded-2xl p-4 ${isActive ? "border-emerald-500/15" : "border-white/[0.07] opacity-60"
-                      }`}
+                    className={`bg-white/[0.03] border rounded-2xl p-4 ${isActive ? "border-emerald-500/15" : "border-white/[0.07] opacity-60"}`}
                   >
                     <div className="flex items-center gap-2.5 mb-2">
                       <span className="text-lg">💊</span>
@@ -310,10 +340,7 @@ export default async function Dashboard() {
                     <p className="text-xs text-slate-500">{rx.dosage} · {rx.frequency}</p>
                     <div className="flex items-center justify-between mt-2">
                       <span className="text-[10px] text-slate-500">{rx.doctor.name}</span>
-                      <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${isActive
-                          ? "bg-emerald-500/10 text-emerald-400"
-                          : "bg-slate-500/10 text-slate-500"
-                        }`}>
+                      <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${isActive ? "bg-emerald-500/10 text-emerald-400" : "bg-slate-500/10 text-slate-500"}`}>
                         {isActive ? "Active" : "Expired"}
                       </span>
                     </div>
@@ -344,19 +371,14 @@ export default async function Dashboard() {
               </div>
             ) : (
               <>
-                {/* Table header — desktop only */}
                 <div className="hidden md:grid grid-cols-[2.5rem_1fr_7rem_9rem_6.5rem_7rem_2rem] gap-4 px-6 py-3 bg-white/[0.03] border-b border-white/[0.06]">
                   {["", "Request", "Department", "Status", "Priority", "Date", ""].map((h, i) => (
-                    <span
-                      key={i}
-                      className="text-[10px] font-semibold uppercase tracking-widest text-slate-600"
-                    >
+                    <span key={i} className="text-[10px] font-semibold uppercase tracking-widest text-slate-600">
                       {h}
                     </span>
                   ))}
                 </div>
 
-                {/* Rows — each row is a Link */}
                 {requests.map((req) => {
                   const p = priorityConfig(req.priority);
                   return (
@@ -395,7 +417,6 @@ export default async function Dashboard() {
                         })}
                       </span>
 
-                      {/* Arrow indicator */}
                       <span className="hidden md:block text-slate-600 group-hover:text-slate-400 group-hover:translate-x-0.5 transition-all text-sm">
                         →
                       </span>
