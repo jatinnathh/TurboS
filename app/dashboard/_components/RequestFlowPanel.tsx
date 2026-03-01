@@ -81,38 +81,62 @@ export default function RequestFlowPanel() {
     const [activityLogs, setActivityLogs] = useState<ActivityLogEntry[]>([]);
     const [loading, setLoading] = useState(false);
     const [expandedId, setExpandedId] = useState<string | null>(null);
+    const [doctorId, setDoctorId] = useState<string | null>(null);
+
+    const isDoctor = pathname?.startsWith("/doctor") && pathname !== "/doctor/login";
+
+    /* ── Resolve doctorId once on mount (doctor pages only) ── */
+    useEffect(() => {
+        if (!isDoctor) return;
+        fetch("/api/doctor/me", { credentials: "include" })
+            .then((r) => r.ok ? r.json() : null)
+            .then((data) => {
+                if (data?.authenticated && data.doctorId) {
+                    setDoctorId(data.doctorId);
+                }
+            })
+            .catch(() => { /* silent */ });
+    }, [isDoctor]);
 
     /* ── Fetchers ── */
 
     const fetchFlow = useCallback(async () => {
         setLoading(true);
         try {
-            const res = await fetch("/api/request/flow", { credentials: "include" });
+            const url = isDoctor && doctorId
+                ? `/api/request/flow?doctorId=${doctorId}`
+                : "/api/request/flow";
+            const res = await fetch(url, { credentials: "include" });
             if (res.ok) {
                 const data = await res.json();
                 setRequests(data.requests ?? []);
             }
         } catch { /* silent */ }
         finally { setLoading(false); }
-    }, []);
+    }, [isDoctor, doctorId]);
 
     const fetchActivity = useCallback(async () => {
         setLoading(true);
         try {
-            const res = await fetch("/api/request/activity", { credentials: "include" });
+            const url = isDoctor && doctorId
+                ? `/api/request/activity?doctorId=${doctorId}`
+                : "/api/request/activity";
+            const res = await fetch(url, { credentials: "include" });
             if (res.ok) {
                 const data = await res.json();
                 setActivityLogs(data.logs ?? []);
             }
         } catch { /* silent */ }
         finally { setLoading(false); }
-    }, []);
+    }, [isDoctor, doctorId]);
 
     useEffect(() => {
         if (!open) return;
+        // On doctor pages, wait until we've resolved the doctorId before fetching
+        if (isDoctor && !doctorId) return;
         if (mode === "flow") fetchFlow();
         else fetchActivity();
-    }, [open, mode, fetchFlow, fetchActivity]);
+    }, [open, mode, fetchFlow, fetchActivity, isDoctor, doctorId]);
 
     /* ── Body margin management ── */
     useEffect(() => {

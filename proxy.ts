@@ -9,6 +9,8 @@ const isPublicRoute = createRouteMatcher([
   "/doctor(.*)",       // doctor system uses JWT, not Clerk
   "/api/doctor(.*)",
   "/api/lab(.*)",   // doctor APIs use JWT
+  "/api/request/flow",   // both patient + doctor panel use this (each route handles own auth)
+  "/api/request/activity", // both patient + doctor panel use this (each route handles own auth)
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
