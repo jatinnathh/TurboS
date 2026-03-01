@@ -1,0 +1,21 @@
+﻿⚠️ Important: Chat (WebSocket) Won't Work on Vercel
+Vercel is serverless — it does NOT support long-lived WebSocket connections. The ws-server/ directory runs separately and cannot be hosted on Vercel.
+
+Options for the WebSocket Server:
+Platform	Free Tier	How
+Railway	Yes (trial)	Push ws-server/ as its own project
+Render	Yes	Deploy as a Node web service
+Fly.io	Yes	flyctl launch in ws-server/
+Your own VPS	Depends	Run npx tsx index.ts on any Linux server
+Once hosted, update ChatBadge.tsx and ChatLayout.tsx to point to the hosted WS URL instead of http://localhost:3001.
+
+Quick Checklist
+ Push code to GitHub
+ Import on Vercel
+ Add 4 environment variables
+ Deploy
+ Run npx prisma db push locally (if needed)
+ (Optional) Host ws-server/ on Railway/Render for chat
+
+Comment
+Ctrl+Alt+M

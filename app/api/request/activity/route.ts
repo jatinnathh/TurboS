@@ -1,13 +1,17 @@
 import { prisma } from "@/lib/prisma";
+import { getDoctorFromToken } from "@/lib/doctorAuth";
 import { currentUser } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
     const doctorId = req.nextUrl.searchParams.get("doctorId");
 
-    // Doctor context: fetch logs for requests where doctor is assigned OR appears in logs
-    if (doctorId) {
-        const doctor = await prisma.doctor.findUnique({ where: { id: doctorId } });
+    // Doctor context: resolve doctor either from query param or from JWT cookie
+    const doctorFromToken = await getDoctorFromToken();
+    const resolvedDoctorId = doctorId ?? doctorFromToken?.id ?? null;
+
+    if (resolvedDoctorId) {
+        const doctor = await prisma.doctor.findUnique({ where: { id: resolvedDoctorId } });
         if (!doctor) {
             return NextResponse.json({ logs: [] });
         }

@@ -83,63 +83,30 @@ export default function RequestFlowPanel() {
     const [expandedId, setExpandedId] = useState<string | null>(null);
 
     /* ── Fetchers ── */
-    const isDoctor = pathname?.startsWith("/doctor") && pathname !== "/doctor/login";
 
     const fetchFlow = useCallback(async () => {
         setLoading(true);
         try {
-            let url = "/api/request/flow";
-            if (isDoctor) {
-                const meRes = await fetch("/api/doctor/me", { credentials: "include" });
-                if (meRes.ok) {
-                    const meData = await meRes.json();
-                    if (meData?.authenticated && meData.doctorId) {
-                        url += `?doctorId=${meData.doctorId}`;
-                    } else {
-                        setLoading(false);
-                        return;
-                    }
-                } else {
-                    setLoading(false);
-                    return;
-                }
-            }
-            const res = await fetch(url, { credentials: "include" });
+            const res = await fetch("/api/request/flow", { credentials: "include" });
             if (res.ok) {
                 const data = await res.json();
                 setRequests(data.requests ?? []);
             }
         } catch { /* silent */ }
         finally { setLoading(false); }
-    }, [isDoctor]);
+    }, []);
 
     const fetchActivity = useCallback(async () => {
         setLoading(true);
         try {
-            let url = "/api/request/activity";
-            if (isDoctor) {
-                const meRes = await fetch("/api/doctor/me", { credentials: "include" });
-                if (meRes.ok) {
-                    const meData = await meRes.json();
-                    if (meData?.authenticated && meData.doctorId) {
-                        url += `?doctorId=${meData.doctorId}`;
-                    } else {
-                        setLoading(false);
-                        return;
-                    }
-                } else {
-                    setLoading(false);
-                    return;
-                }
-            }
-            const res = await fetch(url, { credentials: "include" });
+            const res = await fetch("/api/request/activity", { credentials: "include" });
             if (res.ok) {
                 const data = await res.json();
                 setActivityLogs(data.logs ?? []);
             }
         } catch { /* silent */ }
         finally { setLoading(false); }
-    }, [isDoctor]);
+    }, []);
 
     useEffect(() => {
         if (!open) return;
