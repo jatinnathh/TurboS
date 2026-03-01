@@ -44,3 +44,6 @@ next-env.d.ts
 
 # ws-server
 /ws-server/node_modules
+
+# clerk configuration (can include secrets)
+/.clerk/

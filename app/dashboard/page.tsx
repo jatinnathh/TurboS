@@ -48,56 +48,57 @@ const ACTIONS = [
   {
     href: "/dashboard/appointment",
     label: "Book Appointment",
-    desc: "Schedule a doctor visit",
+    desc: "Schedule a visit",
     icon: "🗓",
     ring: "ring-sky-500/30 hover:ring-sky-400/60",
     iconBg: "bg-sky-500/10",
+    glow: "group-hover:shadow-sky-500/10",
     text: "text-sky-300",
+    bar: "bg-sky-500",
   },
   {
     href: "/dashboard/lab-test",
     label: "Lab Test",
-    desc: "Request diagnostic tests",
+    desc: "Request diagnostics",
     icon: "🧪",
     ring: "ring-violet-500/30 hover:ring-violet-400/60",
     iconBg: "bg-violet-500/10",
+    glow: "group-hover:shadow-violet-500/10",
     text: "text-violet-300",
+    bar: "bg-violet-500",
   },
   {
     href: "/dashboard/emergency",
     label: "Emergency",
-    desc: "Urgent medical request",
+    desc: "Urgent request",
     icon: "🚨",
     ring: "ring-rose-500/30 hover:ring-rose-400/60",
     iconBg: "bg-rose-500/10",
+    glow: "group-hover:shadow-rose-500/10",
     text: "text-rose-300",
+    bar: "bg-rose-500",
   },
   {
     href: "/dashboard/prescriptions",
     label: "Prescriptions",
-    desc: "View your medications",
+    desc: "View medications",
     icon: "💊",
     ring: "ring-emerald-500/30 hover:ring-emerald-400/60",
     iconBg: "bg-emerald-500/10",
+    glow: "group-hover:shadow-emerald-500/10",
     text: "text-emerald-300",
+    bar: "bg-emerald-500",
   },
   {
     href: "/dashboard/health-status",
     label: "Health Status",
-    desc: "Track your checkups",
+    desc: "Track checkups",
     icon: "🩺",
     ring: "ring-cyan-500/30 hover:ring-cyan-400/60",
     iconBg: "bg-cyan-500/10",
+    glow: "group-hover:shadow-cyan-500/10",
     text: "text-cyan-300",
-  },
-  {
-    href: "/dashboard/report",
-    label: "Download Report",
-    desc: "Access medical reports",
-    icon: "📄",
-    ring: "ring-teal-500/30 hover:ring-teal-400/60",
-    iconBg: "bg-teal-500/10",
-    text: "text-teal-300",
+    bar: "bg-cyan-500",
   },
 ];
 
@@ -210,25 +211,32 @@ export default async function Dashboard() {
           <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-500 mb-4">
             Quick Actions
           </p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+
+          {/* 5 equal columns on md+, 5 equal columns on sm, 2+3 wrap on mobile */}
+          <div className="grid grid-cols-5 gap-3">
             {ACTIONS.map((a) => (
               <Link
                 key={a.href}
                 href={a.href}
-                className={`group flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-white/[0.03] ring-1 ${a.ring} hover:-translate-y-0.5 hover:bg-white/[0.05] transition-all duration-200`}
+                className={`group relative flex flex-col items-center justify-center text-center gap-3 px-3 py-5 rounded-2xl bg-white/[0.03] ring-1 ${a.ring} hover:-translate-y-1 hover:bg-white/[0.05] hover:shadow-xl ${a.glow} transition-all duration-200 overflow-hidden`}
               >
-                <span className={`text-xl leading-none shrink-0 w-10 h-10 rounded-xl ${a.iconBg} flex items-center justify-center`}>
+                {/* Top accent bar */}
+                <span className={`absolute top-0 left-4 right-4 h-px ${a.bar} opacity-0 group-hover:opacity-40 transition-opacity duration-300`} />
+
+                {/* Icon bubble */}
+                <span className={`text-2xl leading-none w-12 h-12 rounded-xl ${a.iconBg} flex items-center justify-center shrink-0`}>
                   {a.icon}
                 </span>
-                <div className="min-w-0">
-                  <p className={`text-sm font-bold tracking-tight truncate ${a.text}`}>
+
+                {/* Label + desc */}
+                <div>
+                  <p className={`text-xs font-bold tracking-tight leading-snug ${a.text}`}>
                     {a.label}
                   </p>
-                  <p className="text-xs text-slate-500 truncate">{a.desc}</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5 leading-tight">
+                    {a.desc}
+                  </p>
                 </div>
-                <span className="ml-auto text-slate-600 group-hover:text-slate-400 group-hover:translate-x-0.5 transition-all shrink-0">
-                  →
-                </span>
               </Link>
             ))}
           </div>
