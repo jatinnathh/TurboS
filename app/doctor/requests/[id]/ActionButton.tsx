@@ -14,6 +14,75 @@ interface Props {
   doctors: Doctor[];
 }
 
+// ── Reusable Modal wrapper — defined OUTSIDE component to prevent remount ──
+function Modal({ show, onClose, borderColor, children }: {
+  show: boolean; onClose: () => void; borderColor: string; children: React.ReactNode;
+}) {
+  if (!show) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+      <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" onClick={onClose} />
+      <div className={`relative z-10 w-full max-w-md bg-[#0d1117] border ${borderColor} rounded-2xl shadow-2xl overflow-hidden`}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// ── Reusable Modal Header — defined OUTSIDE component ─────────────────────
+function ModalHeader({ icon, title, subtitle, barColor, onClose }: {
+  icon: string; title: string; subtitle: string; barColor: string; onClose: () => void;
+}) {
+  return (
+    <div className="relative px-6 pt-6 pb-5 border-b border-white/[0.06]">
+      <div className={`absolute top-0 left-0 right-0 h-[2px] ${barColor} opacity-60`} />
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <span className="text-2xl leading-none">{icon}</span>
+          <div>
+            <h3 className="text-base font-extrabold tracking-tight text-slate-100">{title}</h3>
+            <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>
+          </div>
+        </div>
+        <button
+          onClick={onClose}
+          className="w-7 h-7 flex items-center justify-center rounded-lg bg-white/[0.05] text-slate-500 hover:text-slate-200 hover:bg-white/[0.1] transition-all shrink-0 text-xs"
+        >
+          ✕
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── Select wrapper with chevron — defined OUTSIDE component ───────────────
+function SelectField({ label, value, onChange, disabled, children }: {
+  label: string; value: string; onChange: (v: string) => void; disabled?: boolean; children: React.ReactNode;
+}) {
+  const selectClass =
+    "w-full px-4 py-2.5 bg-[#0d1117] border border-white/[0.1] rounded-xl text-sm text-slate-200 focus:outline-none focus:border-sky-500/40 focus:ring-1 focus:ring-sky-500/20 transition-all appearance-none cursor-pointer [&>option]:bg-[#0d1117] [&>option]:text-slate-200";
+
+  return (
+    <div className="space-y-1.5">
+      <label className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">{label}</label>
+      <div className="relative">
+        <select
+          className={`${selectClass} pr-10 ${disabled ? "opacity-40 cursor-not-allowed" : ""}`}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          disabled={disabled}
+        >
+          {children}
+        </select>
+        <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+// ── Main component ─────────────────────────────────────────────────────────
 export default function ActionButtons({ requestId, doctors }: Props) {
   const router = useRouter();
 
@@ -36,6 +105,9 @@ export default function ActionButtons({ requestId, doctors }: Props) {
 
   const departments = [...new Set(doctors.map((d) => d.department))];
   const filteredDoctors = doctors.filter((d) => d.department === selectedDept);
+
+  const inputClass =
+    "w-full px-4 py-2.5 bg-white/[0.06] border border-white/[0.1] rounded-xl text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-sky-500/40 focus:ring-1 focus:ring-sky-500/20 transition-all";
 
   /* ---------------- REFER DOCTOR ---------------- */
   const handleRefer = async () => {
@@ -104,75 +176,6 @@ export default function ActionButtons({ requestId, doctors }: Props) {
     if (res.ok) { setShowLab(false); setSelectedLab(""); setTestType(""); router.refresh(); }
     else alert("Failed to order test");
   };
-
-  // ── Shared styles ────────────────────────────────────────────────────────
-  const inputClass =
-    "w-full px-4 py-2.5 bg-white/[0.06] border border-white/[0.1] rounded-xl text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-sky-500/40 focus:ring-1 focus:ring-sky-500/20 transition-all";
-
-  // Custom dark select — fixes the white browser default dropdown
-  const selectClass =
-    "w-full px-4 py-2.5 bg-[#0d1117] border border-white/[0.1] rounded-xl text-sm text-slate-200 focus:outline-none focus:border-sky-500/40 focus:ring-1 focus:ring-sky-500/20 transition-all appearance-none cursor-pointer [&>option]:bg-[#0d1117] [&>option]:text-slate-200";
-
-  // ── Reusable Modal wrapper ────────────────────────────────────────────────
-  const Modal = ({ show, onClose, borderColor, children }: {
-    show: boolean; onClose: () => void; borderColor: string; children: React.ReactNode;
-  }) => {
-    if (!show) return null;
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-        <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" onClick={onClose} />
-        <div className={`relative z-10 w-full max-w-md bg-[#0d1117] border ${borderColor} rounded-2xl shadow-2xl overflow-hidden`}>
-          {children}
-        </div>
-      </div>
-    );
-  };
-
-  // ── Reusable Modal Header ─────────────────────────────────────────────────
-  const ModalHeader = ({ icon, title, subtitle, barColor, onClose }: {
-    icon: string; title: string; subtitle: string; barColor: string; onClose: () => void;
-  }) => (
-    <div className="relative px-6 pt-6 pb-5 border-b border-white/[0.06]">
-      <div className={`absolute top-0 left-0 right-0 h-[2px] ${barColor} opacity-60`} />
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <span className="text-2xl leading-none">{icon}</span>
-          <div>
-            <h3 className="text-base font-extrabold tracking-tight text-slate-100">{title}</h3>
-            <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>
-          </div>
-        </div>
-        <button
-          onClick={onClose}
-          className="w-7 h-7 flex items-center justify-center rounded-lg bg-white/[0.05] text-slate-500 hover:text-slate-200 hover:bg-white/[0.1] transition-all shrink-0 text-xs"
-        >
-          ✕
-        </button>
-      </div>
-    </div>
-  );
-
-  // Select wrapper with chevron icon
-  const SelectField = ({ label, value, onChange, disabled, children }: {
-    label: string; value: string; onChange: (v: string) => void; disabled?: boolean; children: React.ReactNode;
-  }) => (
-    <div className="space-y-1.5">
-      <label className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">{label}</label>
-      <div className="relative">
-        <select
-          className={`${selectClass} pr-10 ${disabled ? "opacity-40 cursor-not-allowed" : ""}`}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          disabled={disabled}
-        >
-          {children}
-        </select>
-        <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-        </svg>
-      </div>
-    </div>
-  );
 
   // Action definitions for the grid
   const primaryActions = [
@@ -248,21 +251,23 @@ export default function ActionButtons({ requestId, doctors }: Props) {
         <div className="px-6 py-5 space-y-4">
           <div className="space-y-1.5">
             <label className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Medication</label>
-            <input maxLength={255} className={inputClass} placeholder="e.g. Amoxicillin" value={medication} onChange={(e) => setMedication(e.target.value)} />
+            <input className={inputClass} placeholder="e.g. Amoxicillin" value={medication} onChange={(e) => setMedication(e.target.value)} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <label className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Dosage</label>
-              <input maxLength={255} className={inputClass} placeholder="e.g. 500mg" value={dosage} onChange={(e) => setDosage(e.target.value)} />
+              <input className={inputClass} placeholder="e.g. 500mg" value={dosage} onChange={(e) => setDosage(e.target.value)} />
             </div>
             <div className="space-y-1.5">
               <label className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Frequency</label>
-              <input maxLength={255} className={inputClass} placeholder="e.g. Twice daily" value={frequency} onChange={(e) => setFrequency(e.target.value)} />
+              <input className={inputClass} placeholder="e.g. Twice daily" value={frequency} onChange={(e) => setFrequency(e.target.value)} />
             </div>
           </div>
           <div className="space-y-1.5">
-            <label className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Notes <span className="normal-case text-slate-600">(optional)</span></label>
-            <textarea maxLength={255} className={`${inputClass} resize-none`} rows={3} placeholder="Additional instructions..." value={notes} onChange={(e) => setNotes(e.target.value)} />
+            <label className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+              Notes <span className="normal-case text-slate-600">(optional)</span>
+            </label>
+            <textarea className={`${inputClass} resize-none`} rows={3} placeholder="Additional instructions..." value={notes} onChange={(e) => setNotes(e.target.value)} />
           </div>
           <div className="flex gap-3 pt-1">
             <button onClick={handlePrescribe} className="flex-1 py-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/30 hover:bg-emerald-500/20 text-sm font-bold transition-all">
