@@ -38,14 +38,29 @@ TurboS eliminates the communication gaps between hospital departments by creatin
 - Every action performed by any actor is logged with a timestamp, department tag, HTTP method, and status code
 - Departments communicate directly via a built-in real-time chat
 - A collapsible global side panel shows the full request flow and activity log on every page
-![image alt](https://github.com/jatinnathh/TurboS/blob/main/Screenshot%202026-03-02%20013858.png?raw=true)
-| Request Flow | Activity Log |
-|-------------|--------------|
-| ![](https://github.com/jatinnathh/TurboS/blob/main/request.png?raw=true) | ![](https://github.com/jatinnathh/TurboS/blob/main/activity.png?raw=true) |
+<!-- Image 1 (full width) -->
 
-| Request Flow (Alt) | Activity Log (Alt) |
-|-------------------|--------------------|
-| ![](https://github.com/jatinnathh/TurboS/blob/main/req_2.png?raw=true) | ![](https://github.com/jatinnathh/TurboS/blob/main/ac_2.png?raw=true) |
+<img src="https://github.com/jatinnathh/TurboS/blob/main/Screenshot%202026-03-02%20013858.png?raw=true" width="100%" />
+
+<br/>
+
+<!-- Images 2 & 3 -->
+
+<p align="center">
+  <img src="https://github.com/jatinnathh/TurboS/blob/main/request.png?raw=true" width="45%" />
+  &nbsp;&nbsp;
+  <img src="https://github.com/jatinnathh/TurboS/blob/main/activity.png?raw=true" width="45%" />
+</p>
+
+<br/>
+
+<!-- Images 4 & 5 -->
+
+<p align="center">
+  <img src="https://github.com/jatinnathh/TurboS/blob/main/req_2.png?raw=true" width="45%" />
+  &nbsp;&nbsp;
+  <img src="https://github.com/jatinnathh/TurboS/blob/main/ac_2.png?raw=true" width="45%" />
+</p>
 
 
 ---
