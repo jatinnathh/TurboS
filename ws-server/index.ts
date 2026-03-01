@@ -1,24 +1,28 @@
-import { config } from "dotenv";
-import { resolve } from "path";
-config({ path: resolve(__dirname, "../.env") });
+
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import { prisma } from "./prisma";
-
+import "dotenv/config"
 const JWT_SECRET = process.env.JWT_SECRET!;
 if (!JWT_SECRET) {
     console.error("❌ JWT_SECRET is not set in environment");
     process.exit(1);
 }
 
-const io = new Server(3001, {
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
+
+const io = new Server({
     cors: {
-        origin: "http://localhost:3000",
+        origin: FRONTEND_URL,
         credentials: true,
     },
 });
 
-console.log("🚀 WebSocket server running on port 3001");
+const PORT = Number(process.env.PORT) || 3001;
+io.listen(PORT);
+
+console.log(`🚀 WebSocket server running on port ${PORT}`);
+console.log(`🌐 CORS origin: ${FRONTEND_URL}`);
 
 // ─── Auth middleware ───────────────────────────────────
 io.use((socket, next) => {

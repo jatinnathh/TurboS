@@ -24,7 +24,8 @@ export default function ChatBadge() {
             .then((d) => {
                 if (aborted || !d?.token) return;
 
-                const s = io("http://localhost:3001", {
+                const wsUrl = process.env.NEXT_PUBLIC_WS_URL || "http://localhost:3001";
+                const s = io(wsUrl, {
                     auth: { token: d.token },
                     autoConnect: true,
                 });

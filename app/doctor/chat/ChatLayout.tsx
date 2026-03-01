@@ -69,7 +69,8 @@ export default function ChatLayout({
         if (!token) return;
         let aborted = false;
 
-        const s = io("http://localhost:3001", {
+        const wsUrl = process.env.NEXT_PUBLIC_WS_URL || "http://localhost:3001";
+        const s = io(wsUrl, {
             auth: { token },
             autoConnect: true,
         });
