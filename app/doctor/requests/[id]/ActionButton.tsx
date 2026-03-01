@@ -248,21 +248,21 @@ export default function ActionButtons({ requestId, doctors }: Props) {
         <div className="px-6 py-5 space-y-4">
           <div className="space-y-1.5">
             <label className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Medication</label>
-            <input className={inputClass} placeholder="e.g. Amoxicillin" value={medication} onChange={(e) => setMedication(e.target.value)} />
+            <input maxLength={255} className={inputClass} placeholder="e.g. Amoxicillin" value={medication} onChange={(e) => setMedication(e.target.value)} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <label className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Dosage</label>
-              <input className={inputClass} placeholder="e.g. 500mg" value={dosage} onChange={(e) => setDosage(e.target.value)} />
+              <input maxLength={255} className={inputClass} placeholder="e.g. 500mg" value={dosage} onChange={(e) => setDosage(e.target.value)} />
             </div>
             <div className="space-y-1.5">
               <label className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Frequency</label>
-              <input className={inputClass} placeholder="e.g. Twice daily" value={frequency} onChange={(e) => setFrequency(e.target.value)} />
+              <input maxLength={255} className={inputClass} placeholder="e.g. Twice daily" value={frequency} onChange={(e) => setFrequency(e.target.value)} />
             </div>
           </div>
           <div className="space-y-1.5">
             <label className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Notes <span className="normal-case text-slate-600">(optional)</span></label>
-            <textarea className={`${inputClass} resize-none`} rows={3} placeholder="Additional instructions..." value={notes} onChange={(e) => setNotes(e.target.value)} />
+            <textarea maxLength={255} className={`${inputClass} resize-none`} rows={3} placeholder="Additional instructions..." value={notes} onChange={(e) => setNotes(e.target.value)} />
           </div>
           <div className="flex gap-3 pt-1">
             <button onClick={handlePrescribe} className="flex-1 py-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/30 hover:bg-emerald-500/20 text-sm font-bold transition-all">
