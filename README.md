@@ -39,6 +39,10 @@ TurboS eliminates the communication gaps between hospital departments by creatin
 - Departments communicate directly via a built-in real-time chat
 - A collapsible global side panel shows the full request flow and activity log on every page
 ![image alt](https://github.com/jatinnathh/TurboS/blob/main/Screenshot%202026-03-02%20013858.png?raw=true)
+![image alt](https://github.com/jatinnathh/TurboS/blob/main/request.png?raw=true)
+![image alt](https://github.com/jatinnathh/TurboS/blob/main/activity.png?raw=true)
+![image alt](https://github.com/jatinnathh/TurboS/blob/main/req_2.png?raw=true)
+![image alt](https://github.com/jatinnathh/TurboS/blob/main/ac_2.png?raw=true)
 
 
 
