@@ -1,6 +1,6 @@
 # TurboS — Hospital Inter-Department Workflow Automation System
 **Live Application:** https://turbo-s.vercel.app/
-
+**demo and ppt**: https://drive.google.com/drive/folders/1_N9dwrI2mf_mYuYS7rpUbYVtptslWWT4?usp=sharing
 TurboS is a full-stack hospital management platform built to digitize and streamline the end-to-end lifecycle of patient care — from the moment a patient submits a request to final discharge. It connects doctors across departments, provides real-time visibility into every action, and produces a complete, auditable history of every decision made during a patient's treatment.
 
 ---
