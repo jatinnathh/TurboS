@@ -54,7 +54,24 @@ model Doctor {
 //////////////////////////////////////////////////////
 // REQUEST MODEL (Main Case Model)
 //////////////////////////////////////////////////////
+model ChatRoom {
+  id            String   @id @default(uuid())
+  departmentA   String
+  departmentB   String
+  createdAt     DateTime @default(now())
 
+  messages      Message[]
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  roomId   String
+  senderId String
+  content  String
+  createdAt DateTime @default(now())
+
+  room     ChatRoom @relation(fields: [roomId], references: [id])
+}
 model Request {
   id          String      @id @default(cuid())
   type        RequestType
@@ -67,6 +84,7 @@ model Request {
   // 🔹 Appointment & medical info
   appointmentDate DateTime?
   wardType        String?
+  doctorName      String?
 
   // 🔹 Current handling doctor
   doctorId String?

@@ -3,6 +3,7 @@ import { getDoctorFromToken } from "@/lib/doctorAuth";
 import { redirect } from "next/navigation";
 import ActionButtons from "./ActionButton";
 import Link from "next/link";
+import ChatBadge from "../../_components/ChatBadge";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -10,17 +11,17 @@ interface PageProps {
 
 function statusBadge(status: string) {
   const map: Record<string, string> = {
-    PENDING:     "bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/30",
-    APPROVED:    "bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/30",
-    REJECTED:    "bg-rose-500/10 text-rose-400 ring-1 ring-rose-500/30",
+    PENDING: "bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/30",
+    APPROVED: "bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/30",
+    REJECTED: "bg-rose-500/10 text-rose-400 ring-1 ring-rose-500/30",
     IN_PROGRESS: "bg-sky-500/10 text-sky-400 ring-1 ring-sky-500/30",
-    COMPLETED:   "bg-violet-500/10 text-violet-400 ring-1 ring-violet-500/30",
+    COMPLETED: "bg-violet-500/10 text-violet-400 ring-1 ring-violet-500/30",
   };
   return map[status] ?? "bg-slate-500/10 text-slate-400 ring-1 ring-slate-500/30";
 }
 
 function labStatusBadge(status: string) {
-  if (status === "COMPLETED")   return "bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/30";
+  if (status === "COMPLETED") return "bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/30";
   if (status === "IN_PROGRESS") return "bg-sky-500/10 text-sky-400 ring-1 ring-sky-500/30";
   return "bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/30";
 }
@@ -48,12 +49,12 @@ function StatusIcon({ status }: { status: string }) {
 }
 
 const DEPT_COLORS: Record<string, string> = {
-  EMERGENCY:   "bg-rose-500/20 text-rose-400 ring-1 ring-rose-500/40",
-  LABORATORY:  "bg-teal-500/20 text-teal-400 ring-1 ring-teal-500/40",
-  RADIOLOGY:   "bg-violet-500/20 text-violet-400 ring-1 ring-violet-500/40",
-  CARDIOLOGY:  "bg-sky-500/20 text-sky-400 ring-1 ring-sky-500/40",
-  PHARMACY:    "bg-emerald-500/20 text-emerald-400 ring-1 ring-emerald-500/40",
-  GENERAL:     "bg-slate-500/20 text-slate-400 ring-1 ring-slate-500/40",
+  EMERGENCY: "bg-rose-500/20 text-rose-400 ring-1 ring-rose-500/40",
+  LABORATORY: "bg-teal-500/20 text-teal-400 ring-1 ring-teal-500/40",
+  RADIOLOGY: "bg-violet-500/20 text-violet-400 ring-1 ring-violet-500/40",
+  CARDIOLOGY: "bg-sky-500/20 text-sky-400 ring-1 ring-sky-500/40",
+  PHARMACY: "bg-emerald-500/20 text-emerald-400 ring-1 ring-emerald-500/40",
+  GENERAL: "bg-slate-500/20 text-slate-400 ring-1 ring-slate-500/40",
 };
 
 function deptColor(dept: string) {
@@ -80,9 +81,15 @@ export default async function RequestDetail({ params }: PageProps) {
     },
   });
 
-  if (!request || request.doctorId !== doctor.id) {
-    redirect("/doctor/dashboard");
-  }
+  if (!request) redirect("/doctor/dashboard");
+
+  // Allow access if doctor is currently assigned OR appeared in logs
+  const isCurrentDoctor = request.doctorId === doctor.id;
+  const appearsInLogs = request.logs.some((l) => l.performedBy === doctor.name);
+  if (!isCurrentDoctor && !appearsInLogs) redirect("/doctor/dashboard");
+
+  // Read-only mode: doctor previously handled this case but it was referred away
+  const isReadOnly = !isCurrentDoctor;
 
   const doctors = await prisma.doctor.findMany({
     select: { id: true, name: true, department: true },
@@ -100,18 +107,35 @@ export default async function RequestDetail({ params }: PageProps) {
             Doctor
           </span>
         </div>
-        <Link
-          href="/doctor/dashboard"
-          className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-300 transition-colors"
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-          </svg>
-          Back
-        </Link>
+        <div className="flex items-center gap-3">
+          <ChatBadge />
+          <Link
+            href="/doctor/dashboard"
+            className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-300 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+            Back
+          </Link>
+        </div>
       </nav>
 
       <div className="max-w-4xl mx-auto px-5 md:px-8 py-10 space-y-8">
+
+        {/* ── Referred Banner ── */}
+        {isReadOnly && (
+          <div className="bg-amber-500/5 border border-amber-500/20 rounded-2xl px-6 py-4 flex items-center gap-3">
+            <span className="text-2xl">🔁</span>
+            <div>
+              <p className="text-sm font-bold text-amber-400">This case has been referred</p>
+              <p className="text-xs text-amber-400/60 mt-0.5">You can view the history but cannot take any actions on this case.</p>
+            </div>
+            <span className="ml-auto text-[10px] font-bold uppercase tracking-wider text-amber-400 bg-amber-500/10 ring-1 ring-amber-500/30 px-3 py-1 rounded-full">
+              Referred
+            </span>
+          </div>
+        )}
 
         {/* ── Request Header ── */}
         <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-6">
@@ -130,8 +154,8 @@ export default async function RequestDetail({ params }: PageProps) {
                 Patient: {request.user.email}
               </p>
             </div>
-            <span className={`inline-flex items-center text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full ${statusBadge(request.status)}`}>
-              {request.status.replace("_", " ")}
+            <span className={`inline-flex items-center text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full ${isReadOnly ? "bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/30" : statusBadge(request.status)}`}>
+              {isReadOnly ? "REFERRED" : request.status.replace("_", " ")}
             </span>
           </div>
         </div>
@@ -282,7 +306,7 @@ export default async function RequestDetail({ params }: PageProps) {
         </div>
 
         {/* ── Action Section ── */}
-        {request.status !== "COMPLETED" && (
+        {!isReadOnly && request.status !== "COMPLETED" && (
           <ActionButtons requestId={request.id} doctors={doctors} />
         )}
 

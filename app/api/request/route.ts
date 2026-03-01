@@ -69,7 +69,7 @@ export async function POST(req: Request) {
       appointmentDate: data.appointmentDate
         ? new Date(data.appointmentDate)
         : null,
-        //@ts-ignore
+      //@ts-ignore
       status,
       userId: dbUser.id,
     },
@@ -82,8 +82,8 @@ export async function POST(req: Request) {
       department: data.department,
       action:
         data.type === "EMERGENCY"
-          ? "Emergency request received"
-          : "Appointment booked",
+          ? `Emergency request received — POST /api/request 200 (priority: ${data.priority ?? "MEDIUM"})`
+          : `${data.type.charAt(0) + data.type.slice(1).toLowerCase()} request submitted — POST /api/request 200`,
       performedBy: dbUser.email,
       status: "COMPLETED",
     },
@@ -95,7 +95,7 @@ export async function POST(req: Request) {
       data: {
         requestId: request.id,
         department: assignedDoctor.department,
-        action: `Assigned to ${assignedDoctor.name}`,
+        action: `Auto-assigned to ${assignedDoctor.name} (dept: ${assignedDoctor.department}, available: true) — PUT /api/request/${request.id.slice(-8)} 200`,
         performedBy: "System",
         status: "IN_PROGRESS",
       },

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { currentUser } from "@clerk/nextjs/server";
 import { UserButton } from "@clerk/nextjs";
 
+
 // ── helpers ────────────────────────────────────────────────────────────────
 
 function statusBadge(status: string) {
@@ -311,8 +312,8 @@ export default async function Dashboard() {
                     <div className="flex items-center justify-between mt-2">
                       <span className="text-[10px] text-slate-500">{rx.doctor.name}</span>
                       <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${isActive
-                          ? "bg-emerald-500/10 text-emerald-400"
-                          : "bg-slate-500/10 text-slate-500"
+                        ? "bg-emerald-500/10 text-emerald-400"
+                        : "bg-slate-500/10 text-slate-500"
                         }`}>
                         {isActive ? "Active" : "Expired"}
                       </span>
@@ -407,6 +408,7 @@ export default async function Dashboard() {
           </div>
         </div>
       </div>
+
     </div>
   );
 }

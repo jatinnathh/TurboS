@@ -13,7 +13,7 @@ export async function POST(req: Request) {
   if (!doctor) {
     return NextResponse.json({ error: "Invalid email" }, { status: 401 });
   }
-
+  //@ts-ignore
   const isValid = await bcrypt.compare(password, doctor.password);
 
   if (!isValid) {
@@ -30,7 +30,8 @@ export async function POST(req: Request) {
 
   response.cookies.set("doctor_token", token, {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
     path: "/",
   });
 
