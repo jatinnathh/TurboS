@@ -1,4 +1,16 @@
 # TurboS — Hospital Inter-Department Workflow Automation System
+
+## Example Login Credentials
+
+### Doctor Login
+- Email: ananya@mediflow.com  
+  (Format: {doctor_first_name}@mediflow.com)
+- Password: doctor123
+
+### Lab Login
+- Email: bloodlab@hospital.com  
+- Password: lab123
+
 **Live Application:** https://turbo-s.vercel.app/
 
 **demo and ppt**: https://drive.google.com/drive/folders/1_N9dwrI2mf_mYuYS7rpUbYVtptslWWT4?usp=sharing
