@@ -54,9 +54,19 @@ export default function AppointmentPage() {
     setLoadingDoctors(true);
     setSelectedDoctor(null);
     fetch(`/api/doctor/department?department=${encodeURIComponent(department)}`)
-      .then((r) => r.json())
+      .then(async (r) => {
+        if (!r.ok) throw new Error("Failed to fetch doctors");
+        const text = await r.text();
+        return text ? JSON.parse(text) : [];
+      })
       .then((data) => {
         setDoctors(data);
+      })
+      .catch((err) => {
+        console.error(err);
+        setDoctors([]);
+      })
+      .finally(() => {
         setLoadingDoctors(false);
       });
   }, [department]);
@@ -165,8 +175,8 @@ export default function AppointmentPage() {
                   type="button"
                   onClick={() => setDepartment(dept)}
                   className={`px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 border ${department === dept
-                      ? "bg-sky-500/15 border-sky-500/40 text-sky-300 shadow-[0_0_15px_-3px_rgba(56,189,248,0.2)]"
-                      : "bg-white/[0.03] border-white/[0.07] text-slate-400 hover:border-white/[0.15] hover:text-slate-300"
+                    ? "bg-sky-500/15 border-sky-500/40 text-sky-300 shadow-[0_0_15px_-3px_rgba(56,189,248,0.2)]"
+                    : "bg-white/[0.03] border-white/[0.07] text-slate-400 hover:border-white/[0.15] hover:text-slate-300"
                     }`}
                 >
                   {dept}
@@ -204,8 +214,8 @@ export default function AppointmentPage() {
                       type="button"
                       onClick={() => setSelectedDoctor(doc)}
                       className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 border text-left ${selectedDoctor?.id === doc.id
-                          ? "bg-sky-500/10 border-sky-500/40 shadow-[0_0_15px_-3px_rgba(56,189,248,0.2)]"
-                          : "bg-white/[0.02] border-white/[0.06] hover:border-white/[0.15]"
+                        ? "bg-sky-500/10 border-sky-500/40 shadow-[0_0_15px_-3px_rgba(56,189,248,0.2)]"
+                        : "bg-white/[0.02] border-white/[0.06] hover:border-white/[0.15]"
                         }`}
                     >
                       <div className="w-10 h-10 rounded-full bg-sky-500/10 flex items-center justify-center text-sky-400 font-bold text-sm shrink-0">
@@ -291,20 +301,20 @@ export default function AppointmentPage() {
                             disabled={isBooked}
                             onClick={() => !isBooked && setSelectedSlot(slot)}
                             className={`flex flex-col items-center justify-center px-3 py-3 rounded-xl border text-xs font-semibold transition-all duration-200 ${isBooked
-                                ? "bg-rose-500/10 border-rose-500/30 text-rose-400 opacity-60 cursor-not-allowed"
-                                : isSelected
-                                  ? "bg-sky-500 border-sky-400 text-white shadow-[0_0_18px_-4px_rgba(56,189,248,0.6)]"
-                                  : "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-400/50"
+                              ? "bg-rose-500/10 border-rose-500/30 text-rose-400 opacity-60 cursor-not-allowed"
+                              : isSelected
+                                ? "bg-sky-500 border-sky-400 text-white shadow-[0_0_18px_-4px_rgba(56,189,248,0.6)]"
+                                : "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-400/50"
                               }`}
                           >
                             <span className="text-sm font-bold tracking-tight">
                               {slot.replace("-", "–")}
                             </span>
                             <span className={`text-[9px] uppercase tracking-widest mt-0.5 font-semibold ${isBooked
-                                ? "text-rose-500/70"
-                                : isSelected
-                                  ? "text-white/80"
-                                  : "text-emerald-500/70"
+                              ? "text-rose-500/70"
+                              : isSelected
+                                ? "text-white/80"
+                                : "text-emerald-500/70"
                               }`}>
                               {isBooked ? "Booked" : "Available"}
                             </span>
