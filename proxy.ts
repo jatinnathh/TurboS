@@ -1,30 +1,31 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-// Routes that DO NOT require Clerk authentication
 const isPublicRoute = createRouteMatcher([
   "/",
   "/sign-in(.*)",
   "/sign-up(.*)",
-  "/doctor(.*)",       // doctor system uses JWT, not Clerk
+  "/doctor(.*)",
   "/api/doctor(.*)",
-  "/api/lab(.*)",   // doctor APIs use JWT
-  "/api/request/flow",   // both patient + doctor panel use this (each route handles own auth)
-  "/api/request/activity", // both patient + doctor panel use this (each route handles own auth)
+  "/api/lab(.*)",
+  "/api/request/flow",
+  "/api/request/activity",
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
   const { userId } = await auth();
 
-  // If logged in patient and visiting root → go to patient dashboard
+  // If logged-in patient visits root → redirect to dashboard
   if (userId && req.nextUrl.pathname === "/") {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
-  // Protect everything except public routes
+  // Protect routes except public ones
   if (!isPublicRoute(req)) {
     await auth.protect();
   }
+
+  return NextResponse.next(); // important
 });
 
 export const config = {
