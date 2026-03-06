@@ -49,6 +49,9 @@ model Doctor {
 
   // 🔹 Lab tests assigned to this lab doctor
   labTests LabTest[] @relation("LabDoctorTests")
+
+  // 🔹 Doctor reports written
+  reports DoctorReport[]
 }
 
 //////////////////////////////////////////////////////
@@ -101,6 +104,7 @@ model Request {
   logs          RequestLog[]
   prescriptions Prescription[]
   labTests      LabTest[]
+  report        DoctorReport?
 }
 
 //////////////////////////////////////////////////////
@@ -165,6 +169,41 @@ model LabTest {
 
   labDoctorId String?
   labDoctor   Doctor? @relation("LabDoctorTests", fields: [labDoctorId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+//////////////////////////////////////////////////////
+// DOCTOR REPORT MODEL
+//////////////////////////////////////////////////////
+
+model DoctorReport {
+  id String @id @default(cuid())
+
+  requestId String  @unique
+  request   Request @relation(fields: [requestId], references: [id])
+
+  doctorId String
+  doctor   Doctor @relation(fields: [doctorId], references: [id])
+
+  patientName String
+  date        String
+  age         String?
+  gender      String?
+
+  // Vitals (flat fields)
+  vitalsBp     String?
+  vitalsPulse  String?
+  vitalsTemp   String?
+  vitalsWeight String?
+
+  // Clinical
+  symptoms    String? // JSON array as text
+  diagnosis   String?
+  medications String? // JSON array as text
+  advice      String?
+  nextVisit   String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
