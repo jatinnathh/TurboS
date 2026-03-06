@@ -1,3 +1,7 @@
+
+// Appointment page · TSX
+// Copy
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -19,16 +23,24 @@ const DEPARTMENTS = [
   "Pediatrics",
 ];
 
+// Generate time slots from 09:00 to 18:00 in 1-hour blocks
+const TIME_SLOTS = [
+  "09-10", "10-11", "11-12", "12-13",
+  "13-14", "14-15", "15-16", "16-17", "17-18",
+];
+
 export default function AppointmentPage() {
   const router = useRouter();
   const [department, setDepartment] = useState("");
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [date, setDate] = useState("");
-  const [time, setTime] = useState("");
+  const [selectedSlot, setSelectedSlot] = useState("");
   const [symptoms, setSymptoms] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingDoctors, setLoadingDoctors] = useState(false);
+  const [bookedSlots, setBookedSlots] = useState<string[]>([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
 
   // Today's date in YYYY-MM-DD for min attribute
   const today = new Date().toISOString().split("T")[0];
@@ -49,12 +61,33 @@ export default function AppointmentPage() {
       });
   }, [department]);
 
+  // Fetch booked slots whenever doctor or date changes
+  useEffect(() => {
+    if (!selectedDoctor || !date) {
+      setBookedSlots([]);
+      return;
+    }
+    setLoadingSlots(true);
+    setSelectedSlot(""); // reset selection
+    fetch(
+      `/api/request/booked-slots?doctorId=${encodeURIComponent(selectedDoctor.id)}&date=${encodeURIComponent(date)}`
+    )
+      .then((r) => r.json())
+      .then((slots) => {
+        setBookedSlots(Array.isArray(slots) ? slots : []);
+        setLoadingSlots(false);
+      })
+      .catch(() => setLoadingSlots(false));
+  }, [selectedDoctor, date]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!department || !selectedDoctor || !date) return;
+    if (!department || !selectedDoctor || !date || !selectedSlot) return;
     setLoading(true);
 
-    const appointmentDate = time ? `${date}T${time}` : date;
+    // Convert slot like "11-12" to time "11:00"
+    const slotHour = selectedSlot.split("-")[0];
+    const appointmentDate = `${date}T${slotHour}:00`;
 
     await fetch("/api/request", {
       method: "POST",
@@ -131,11 +164,10 @@ export default function AppointmentPage() {
                   key={dept}
                   type="button"
                   onClick={() => setDepartment(dept)}
-                  className={`px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 border ${
-                    department === dept
+                  className={`px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 border ${department === dept
                       ? "bg-sky-500/15 border-sky-500/40 text-sky-300 shadow-[0_0_15px_-3px_rgba(56,189,248,0.2)]"
                       : "bg-white/[0.03] border-white/[0.07] text-slate-400 hover:border-white/[0.15] hover:text-slate-300"
-                  }`}
+                    }`}
                 >
                   {dept}
                 </button>
@@ -171,11 +203,10 @@ export default function AppointmentPage() {
                       key={doc.id}
                       type="button"
                       onClick={() => setSelectedDoctor(doc)}
-                      className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 border text-left ${
-                        selectedDoctor?.id === doc.id
+                      className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 border text-left ${selectedDoctor?.id === doc.id
                           ? "bg-sky-500/10 border-sky-500/40 shadow-[0_0_15px_-3px_rgba(56,189,248,0.2)]"
                           : "bg-white/[0.02] border-white/[0.06] hover:border-white/[0.15]"
-                      }`}
+                        }`}
                     >
                       <div className="w-10 h-10 rounded-full bg-sky-500/10 flex items-center justify-center text-sky-400 font-bold text-sm shrink-0">
                         {doc.name.split(" ").slice(-1)[0][0]}
@@ -198,51 +229,100 @@ export default function AppointmentPage() {
             </div>
           )}
 
-          {/* ── Step 3: Date & Time ── */}
+          {/* ── Step 3: Date & Time Slots ── */}
           {selectedDoctor && (
-            <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-6 space-y-4">
+            <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-6 space-y-5">
               <div className="flex items-center gap-2">
                 <span className="w-5 h-5 rounded-full bg-sky-500/20 text-sky-400 text-[10px] font-bold flex items-center justify-center ring-1 ring-sky-500/30">
                   3
                 </span>
                 <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
-                  Preferred Date & Time
+                  Preferred Date & Time Slot
                 </p>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs text-slate-500 mb-1.5 block">
-                    Date <span className="text-rose-400">*</span>
-                  </label>
-                  <input
-                    type="date"
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    required
-                    min={today}
-                    className={inputClass}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-slate-500 mb-1.5 block">
-                    Time <span className="text-slate-600">(optional)</span>
-                  </label>
-                  <input
-                    type="time"
-                    value={time}
-                    onChange={(e) => setTime(e.target.value)}
-                    className={inputClass}
-                  />
-                </div>
+
+              {/* Date picker */}
+              <div>
+                <label className="text-xs text-slate-500 mb-1.5 block">
+                  Date <span className="text-rose-400">*</span>
+                </label>
+                <input
+                  type="date"
+                  value={date}
+                  onChange={(e) => {
+                    setDate(e.target.value);
+                    setSelectedSlot(""); // reset slot on date change
+                  }}
+                  required
+                  min={today}
+                  className={inputClass}
+                />
+                {date && (
+                  <p className="mt-1.5 text-xs text-sky-400/70 flex items-center gap-1.5">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    {new Date(date).toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+                  </p>
+                )}
               </div>
+
+              {/* Time slot grid — only shown after a date is picked */}
               {date && (
-                <p className="text-xs text-sky-400/70 flex items-center gap-1.5">
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  {new Date(date).toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
-                  {time && ` at ${time}`}
-                </p>
+                <div>
+                  <label className="text-xs text-slate-500 mb-3 block">
+                    Available Slots <span className="text-rose-400">*</span>
+                  </label>
+
+                  {loadingSlots ? (
+                    <div className="flex items-center gap-2 py-6 justify-center text-sm text-slate-500">
+                      <div className="w-4 h-4 border-2 border-sky-400/30 border-t-sky-400 rounded-full animate-spin" />
+                      Checking availability...
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-3 gap-2">
+                      {TIME_SLOTS.map((slot) => {
+                        const isBooked = bookedSlots.includes(slot);
+                        const isSelected = selectedSlot === slot;
+                        return (
+                          <button
+                            key={slot}
+                            type="button"
+                            disabled={isBooked}
+                            onClick={() => !isBooked && setSelectedSlot(slot)}
+                            className={`flex flex-col items-center justify-center px-3 py-3 rounded-xl border text-xs font-semibold transition-all duration-200 ${isBooked
+                                ? "bg-rose-500/10 border-rose-500/30 text-rose-400 opacity-60 cursor-not-allowed"
+                                : isSelected
+                                  ? "bg-sky-500 border-sky-400 text-white shadow-[0_0_18px_-4px_rgba(56,189,248,0.6)]"
+                                  : "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-400/50"
+                              }`}
+                          >
+                            <span className="text-sm font-bold tracking-tight">
+                              {slot.replace("-", "–")}
+                            </span>
+                            <span className={`text-[9px] uppercase tracking-widest mt-0.5 font-semibold ${isBooked
+                                ? "text-rose-500/70"
+                                : isSelected
+                                  ? "text-white/80"
+                                  : "text-emerald-500/70"
+                              }`}>
+                              {isBooked ? "Booked" : "Available"}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {selectedSlot && (
+                    <p className="mt-3 text-xs text-sky-400/70 flex items-center gap-1.5">
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Slot {selectedSlot.replace("-", ":00 – ")}:00 selected
+                    </p>
+                  )}
+                </div>
               )}
             </div>
           )}
@@ -270,7 +350,7 @@ export default function AppointmentPage() {
           )}
 
           {/* ── Submit ── */}
-          {selectedDoctor && date && (
+          {selectedDoctor && date && selectedSlot && (
             <button
               type="submit"
               disabled={loading}
