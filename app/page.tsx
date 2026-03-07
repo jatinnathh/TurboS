@@ -34,7 +34,7 @@ export default function Home() {
 
         {/* Headline */}
         <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tighter text-slate-100 leading-[1.05] max-w-4xl mb-6">
-          Hospital Care,{" "}
+          NOT WORKING > OLD WEBSITE Care,{" "}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-emerald-400">
             Seamlessly Connected
           </span>
